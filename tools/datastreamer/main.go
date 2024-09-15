@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"math/big"
 	"os"
+	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -64,6 +66,12 @@ var (
 		Usage:    "Dump batch to file",
 		Required: false,
 	}
+	jsonFlag = cli.BoolFlag{
+		Name:     "json",
+		Aliases:  []string{"j"},
+		Usage:    "Print data as a JSON stream",
+		Required: false,
+	}
 )
 
 type batch struct {
@@ -109,6 +117,7 @@ func main() {
 			Flags: []cli.Flag{
 				&configFileFlag,
 				&entryFlag,
+				&jsonFlag,
 			},
 		},
 		{
@@ -119,6 +128,7 @@ func main() {
 			Flags: []cli.Flag{
 				&configFileFlag,
 				&l2blockFlag,
+				&jsonFlag,
 			},
 		},
 		{
@@ -129,6 +139,7 @@ func main() {
 			Flags: []cli.Flag{
 				&configFileFlag,
 				&batchFlag,
+				&jsonFlag,
 			},
 		},
 		{
@@ -139,6 +150,7 @@ func main() {
 			Flags: []cli.Flag{
 				&configFileFlag,
 				&entryFlag,
+				&jsonFlag,
 			},
 		},
 		{
@@ -149,6 +161,7 @@ func main() {
 			Flags: []cli.Flag{
 				&configFileFlag,
 				&l2blockFlag,
+				&jsonFlag,
 			},
 		},
 		{
@@ -159,6 +172,7 @@ func main() {
 			Flags: []cli.Flag{
 				&configFileFlag,
 				&batchFlag,
+				&jsonFlag,
 			},
 		},
 		{
@@ -169,6 +183,7 @@ func main() {
 			Flags: []cli.Flag{
 				&configFileFlag,
 				&batchFlag,
+				&jsonFlag,
 			},
 		},
 		{
@@ -190,6 +205,7 @@ func main() {
 				&configFileFlag,
 				&batchFlag,
 				&dumpFlag,
+				&jsonFlag,
 			},
 		},
 		{
@@ -201,6 +217,7 @@ func main() {
 				&configFileFlag,
 				&batchFlag,
 				&dumpFlag,
+				&jsonFlag,
 			},
 		},
 	}
@@ -421,7 +438,8 @@ func decodeEntry(cliCtx *cli.Context) error {
 		os.Exit(1)
 	}
 
-	printEntry(entry)
+	shouldPrintJson := cliCtx.Bool("json")
+	printEntry(entry, shouldPrintJson)
 	return nil
 }
 
@@ -463,7 +481,8 @@ func decodeL2Block(cliCtx *cli.Context) error {
 		log.Error(err)
 		os.Exit(1)
 	}
-	printEntry(firstEntry)
+	shouldPrintJson := cliCtx.Bool("json")
+	printEntry(firstEntry, shouldPrintJson)
 
 	secondEntry, err := client.ExecCommandGetEntry(firstEntry.Number + 1)
 	if err != nil {
@@ -473,7 +492,7 @@ func decodeL2Block(cliCtx *cli.Context) error {
 
 	i := uint64(2) //nolint:gomnd
 	for secondEntry.Type == datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_TRANSACTION) {
-		printEntry(secondEntry)
+		printEntry(secondEntry, shouldPrintJson)
 		entry, err := client.ExecCommandGetEntry(firstEntry.Number + i)
 		if err != nil {
 			log.Error(err)
@@ -489,7 +508,7 @@ func decodeL2Block(cliCtx *cli.Context) error {
 			log.Error(err)
 			os.Exit(1)
 		}
-		printEntry(l2BlockEnd)
+		printEntry(l2BlockEnd, shouldPrintJson)
 	}
 
 	return nil
@@ -515,8 +534,8 @@ func decodeEntryOffline(cliCtx *cli.Context) error {
 		log.Error(err)
 		os.Exit(1)
 	}
-
-	printEntry(entry)
+	shouldPrintJson := cliCtx.Bool("json")
+	printEntry(entry, shouldPrintJson)
 
 	return nil
 }
@@ -553,7 +572,8 @@ func decodeL2BlockOffline(cliCtx *cli.Context) error {
 		log.Error(err)
 		os.Exit(1)
 	}
-	printEntry(firstEntry)
+	shouldPrintJson := cliCtx.Bool("json")
+	printEntry(firstEntry, shouldPrintJson)
 
 	secondEntry, err := streamServer.GetEntry(firstEntry.Number + 1)
 	if err != nil {
@@ -564,7 +584,7 @@ func decodeL2BlockOffline(cliCtx *cli.Context) error {
 	i := uint64(2) //nolint:gomnd
 
 	for secondEntry.Type == datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_TRANSACTION) {
-		printEntry(secondEntry)
+		printEntry(secondEntry, shouldPrintJson)
 		secondEntry, err = streamServer.GetEntry(firstEntry.Number + i)
 		if err != nil {
 			log.Error(err)
@@ -579,7 +599,7 @@ func decodeL2BlockOffline(cliCtx *cli.Context) error {
 			log.Error(err)
 			os.Exit(1)
 		}
-		printEntry(l2BlockEnd)
+		printEntry(l2BlockEnd, shouldPrintJson)
 	}
 
 	return nil
@@ -634,6 +654,7 @@ func decodeBatch(cliCtx *cli.Context) error {
 	}
 
 	batchNumber := cliCtx.Uint64("batch")
+	shouldPrintJson := cliCtx.Bool("json")
 
 	bookMark := &datastream.BookMark{
 		Type:  datastream.BookmarkType_BOOKMARK_TYPE_BATCH,
@@ -650,7 +671,7 @@ func decodeBatch(cliCtx *cli.Context) error {
 		log.Error(err)
 		os.Exit(1)
 	}
-	printEntry(entry)
+	printEntry(entry, shouldPrintJson)
 
 	batchData = append(batchData, entry.Encode()...)
 
@@ -659,7 +680,7 @@ func decodeBatch(cliCtx *cli.Context) error {
 		log.Error(err)
 		os.Exit(1)
 	}
-	printEntry(entry)
+	printEntry(entry, shouldPrintJson)
 
 	batchData = append(batchData, entry.Encode()...)
 
@@ -671,7 +692,7 @@ func decodeBatch(cliCtx *cli.Context) error {
 			os.Exit(1)
 		}
 
-		printEntry(entry)
+		printEntry(entry, shouldPrintJson)
 		batchData = append(batchData, entry.Encode()...)
 		if entry.Type == datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_BATCH_END) {
 			break
@@ -726,7 +747,8 @@ func decodeBatchOffline(cliCtx *cli.Context) error {
 		log.Error(err)
 		os.Exit(1)
 	}
-	printEntry(entry)
+	shouldPrintJson := cliCtx.Bool("json")
+	printEntry(entry, shouldPrintJson)
 	batchData = append(batchData, entry.Encode()...)
 
 	entry, err = streamServer.GetEntry(entry.Number + 1)
@@ -736,7 +758,7 @@ func decodeBatchOffline(cliCtx *cli.Context) error {
 	}
 
 	i := uint64(1) //nolint:gomnd
-	printEntry(entry)
+	printEntry(entry, shouldPrintJson)
 	batchData = append(batchData, entry.Encode()...)
 	for {
 		entry, err = streamServer.GetEntry(entry.Number + i)
@@ -745,7 +767,7 @@ func decodeBatchOffline(cliCtx *cli.Context) error {
 			os.Exit(1)
 		}
 
-		printEntry(entry)
+		printEntry(entry, shouldPrintJson)
 		batchData = append(batchData, entry.Encode()...)
 		if entry.Type == datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_BATCH_END) {
 			break
@@ -912,7 +934,9 @@ func (h *handler) handleReceivedDataStream(entry *datastreamer.FileEntry, client
 	return nil
 }
 
-func printEntry(entry datastreamer.FileEntry) {
+func printEntry(entry datastreamer.FileEntry, shouldPrintJson bool) {
+	simpleEntry := make(map[string]any, 0)
+
 	switch entry.Type {
 	case state.EntryTypeBookMark:
 		bookmark := &datastream.BookMark{}
@@ -922,14 +946,10 @@ func printEntry(entry datastreamer.FileEntry) {
 			os.Exit(1)
 		}
 
-		printColored(color.FgGreen, "Entry Type......: ")
-		printColored(color.FgHiYellow, "BookMark\n")
-		printColored(color.FgGreen, "Entry Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", entry.Number))
-		printColored(color.FgGreen, "Type............: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d (%s)\n", bookmark.Type, datastream.BookmarkType_name[int32(bookmark.Type)]))
-		printColored(color.FgGreen, "Value...........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", bookmark.Value))
+		simpleEntry["Entry Type"] = "BookMark"
+		simpleEntry["Entry Number"] = fmt.Sprintf("%d", entry.Number)
+		simpleEntry["Type"] = fmt.Sprintf("%d (%s)", bookmark.Type, datastream.BookmarkType_name[int32(bookmark.Type)])
+		simpleEntry["Value"] = fmt.Sprintf("%d", bookmark.Value)
 	case datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_L2_BLOCK):
 		l2Block := &datastream.L2Block{}
 		err := proto.Unmarshal(entry.Data, l2Block)
@@ -938,40 +958,24 @@ func printEntry(entry datastreamer.FileEntry) {
 			os.Exit(1)
 		}
 
-		printColored(color.FgGreen, "Entry Type......: ")
-		printColored(color.FgHiYellow, "L2 Block\n")
-		printColored(color.FgGreen, "Entry Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", entry.Number))
-		printColored(color.FgGreen, "L2 Block Number.: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", l2Block.Number))
-		printColored(color.FgGreen, "Batch Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", l2Block.BatchNumber))
-		printColored(color.FgGreen, "Timestamp.......: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d (%v)\n", l2Block.Timestamp, time.Unix(int64(l2Block.Timestamp), 0)))
-		printColored(color.FgGreen, "Delta Timestamp.: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", l2Block.DeltaTimestamp))
-		printColored(color.FgGreen, "Min. Timestamp..: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", l2Block.MinTimestamp))
-		printColored(color.FgGreen, "L1 Block Hash...: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", common.BytesToHash(l2Block.L1Blockhash)))
-		printColored(color.FgGreen, "L1 InfoTree Idx.: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", l2Block.L1InfotreeIndex))
-		printColored(color.FgGreen, "Block Hash......: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", common.BytesToHash(l2Block.Hash)))
-		printColored(color.FgGreen, "State Root......: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", common.BytesToHash(l2Block.StateRoot)))
-		printColored(color.FgGreen, "Global Exit Root: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", common.BytesToHash(l2Block.GlobalExitRoot)))
-		printColored(color.FgGreen, "Coinbase........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", common.BytesToAddress(l2Block.Coinbase)))
-		printColored(color.FgGreen, "Block Gas Limit.: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", l2Block.BlockGasLimit))
-		printColored(color.FgGreen, "Block Info Root.: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", common.BytesToHash(l2Block.BlockInfoRoot)))
+		simpleEntry["Entry Type"] = "L2 Block"
+		simpleEntry["Entry Number"] = fmt.Sprintf("%d", entry.Number)
+		simpleEntry["L2 Block Number"] = fmt.Sprintf("%d", l2Block.Number)
+		simpleEntry["Batch Number"] = fmt.Sprintf("%d", l2Block.BatchNumber)
+		simpleEntry["Timestamp"] = fmt.Sprintf("%d (%v)", l2Block.Timestamp, time.Unix(int64(l2Block.Timestamp), 0))
+		simpleEntry["Delta Timestamp"] = fmt.Sprintf("%d", l2Block.DeltaTimestamp)
+		simpleEntry["Min. Timestamp"] = fmt.Sprintf("%d", l2Block.MinTimestamp)
+		simpleEntry["L1 Block Hash"] = fmt.Sprintf("%s", common.BytesToHash(l2Block.L1Blockhash))
+		simpleEntry["L1 InfoTree Idx"] = fmt.Sprintf("%d", l2Block.L1InfotreeIndex)
+		simpleEntry["Block Hash"] = fmt.Sprintf("%s", common.BytesToHash(l2Block.Hash))
+		simpleEntry["State Root"] = fmt.Sprintf("%s", common.BytesToHash(l2Block.StateRoot))
+		simpleEntry["Global Exit Root"] = fmt.Sprintf("%s", common.BytesToHash(l2Block.GlobalExitRoot))
+		simpleEntry["Coinbase"] = fmt.Sprintf("%s", common.BytesToAddress(l2Block.Coinbase))
+		simpleEntry["Block Gas Limit"] = fmt.Sprintf("%d", l2Block.BlockGasLimit)
+		simpleEntry["Block Info Root"] = fmt.Sprintf("%s", common.BytesToHash(l2Block.BlockInfoRoot))
 
 		if l2Block.Debug != nil && l2Block.Debug.Message != "" {
-			printColored(color.FgGreen, "Debug...........: ")
-			printColored(color.FgHiWhite, fmt.Sprintf("%s\n", l2Block.Debug))
+			simpleEntry["Debug"] = fmt.Sprintf("%s", l2Block.Debug)
 		}
 
 	case datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_L2_BLOCK_END):
@@ -982,12 +986,9 @@ func printEntry(entry datastreamer.FileEntry) {
 			os.Exit(1)
 		}
 
-		printColored(color.FgGreen, "Entry Type......: ")
-		printColored(color.FgHiYellow, "L2 Block End\n")
-		printColored(color.FgGreen, "Entry Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", entry.Number))
-		printColored(color.FgGreen, "L2 Block Number.: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", l2BlockEnd.Number))
+		simpleEntry["Entry Type"] = "L2 Block End"
+		simpleEntry["Entry Number"] = fmt.Sprintf("%d", entry.Number)
+		simpleEntry["L2 Block Number"] = fmt.Sprintf("%d", l2BlockEnd.Number)
 
 	case datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_BATCH_START):
 		batch := &datastream.BatchStart{}
@@ -996,22 +997,15 @@ func printEntry(entry datastreamer.FileEntry) {
 			log.Error(err)
 			os.Exit(1)
 		}
-		printColored(color.FgGreen, "Entry Type......: ")
-		printColored(color.FgHiYellow, "Batch Start\n")
-		printColored(color.FgGreen, "Entry Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", entry.Number))
-		printColored(color.FgGreen, "Batch Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", batch.Number))
-		printColored(color.FgGreen, "Batch Type......: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", datastream.BatchType_name[int32(batch.Type)]))
-		printColored(color.FgGreen, "Fork ID.........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", batch.ForkId))
-		printColored(color.FgGreen, "Chain ID........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", batch.ChainId))
+		simpleEntry["Entry Type"] = "Batch Start"
+		simpleEntry["Entry Number"] = fmt.Sprintf("%d", entry.Number)
+		simpleEntry["Batch Number"] = fmt.Sprintf("%d", batch.Number)
+		simpleEntry["Batch Type"] = fmt.Sprintf("%s", datastream.BatchType_name[int32(batch.Type)])
+		simpleEntry["Fork ID"] = fmt.Sprintf("%d", batch.ForkId)
+		simpleEntry["Chain ID "] = fmt.Sprintf("%d", batch.ChainId)
 
 		if batch.Debug != nil && batch.Debug.Message != "" {
-			printColored(color.FgGreen, "Debug...........: ")
-			printColored(color.FgHiWhite, fmt.Sprintf("%s\n", batch.Debug))
+			simpleEntry["Debug "] = fmt.Sprintf("%s", batch.Debug)
 		}
 
 	case datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_BATCH_END):
@@ -1021,20 +1015,14 @@ func printEntry(entry datastreamer.FileEntry) {
 			log.Error(err)
 			os.Exit(1)
 		}
-		printColored(color.FgGreen, "Entry Type......: ")
-		printColored(color.FgHiYellow, "Batch End\n")
-		printColored(color.FgGreen, "Entry Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", entry.Number))
-		printColored(color.FgGreen, "Batch Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", batch.Number))
-		printColored(color.FgGreen, "State Root......: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", "0x"+common.Bytes2Hex(batch.StateRoot)))
-		printColored(color.FgGreen, "Local Exit Root.: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", "0x"+common.Bytes2Hex(batch.LocalExitRoot)))
+		simpleEntry["Entry Type"] = "Batch End"
+		simpleEntry["Entry Number"] = fmt.Sprintf("%d", entry.Number)
+		simpleEntry["Batch Number"] = fmt.Sprintf("%d", batch.Number)
+		simpleEntry["State Root"] = fmt.Sprintf("%s", "0x"+common.Bytes2Hex(batch.StateRoot))
+		simpleEntry["Local Exit Root"] = fmt.Sprintf("%s", "0x"+common.Bytes2Hex(batch.LocalExitRoot))
 
 		if batch.Debug != nil && batch.Debug.Message != "" {
-			printColored(color.FgGreen, "Debug...........: ")
-			printColored(color.FgHiWhite, fmt.Sprintf("%s\n", batch.Debug))
+			simpleEntry["Debug "] = fmt.Sprintf("%s", batch.Debug)
 		}
 
 	case datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_TRANSACTION):
@@ -1045,22 +1033,14 @@ func printEntry(entry datastreamer.FileEntry) {
 			os.Exit(1)
 		}
 
-		printColored(color.FgGreen, "Entry Type......: ")
-		printColored(color.FgHiYellow, "L2 Transaction\n")
-		printColored(color.FgGreen, "Entry Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", entry.Number))
-		printColored(color.FgGreen, "L2 Block Number.: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", dsTx.L2BlockNumber))
-		printColored(color.FgGreen, "Index...........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", dsTx.Index))
-		printColored(color.FgGreen, "Is Valid........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%t\n", dsTx.IsValid))
-		printColored(color.FgGreen, "Data............: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", "0x"+common.Bytes2Hex(dsTx.Encoded)))
-		printColored(color.FgGreen, "Effec. Gas Price: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", dsTx.EffectiveGasPricePercentage))
-		printColored(color.FgGreen, "IM State Root...: ")
-		printColored(color.FgHiWhite, fmt.Sprint("0x"+common.Bytes2Hex(dsTx.ImStateRoot)+"\n"))
+		simpleEntry["Entry Type"] = "L2 Transaction"
+		simpleEntry["Entry Number"] = fmt.Sprintf("%d", entry.Number)
+		simpleEntry["L2 Block Number"] = fmt.Sprintf("%d", dsTx.L2BlockNumber)
+		simpleEntry["Index"] = fmt.Sprintf("%d", dsTx.Index)
+		simpleEntry["Is Valid"] = fmt.Sprintf("%t", dsTx.IsValid)
+		simpleEntry["Data"] = fmt.Sprintf("%s", "0x"+common.Bytes2Hex(dsTx.Encoded))
+		simpleEntry["Effec. Gas Price"] = fmt.Sprintf("%d", dsTx.EffectiveGasPricePercentage)
+		simpleEntry["IM State Root "] = fmt.Sprint("0x" + common.Bytes2Hex(dsTx.ImStateRoot))
 
 		tx, err := state.DecodeTx(common.Bytes2Hex(dsTx.Encoded))
 		if err != nil {
@@ -1074,15 +1054,13 @@ func printEntry(entry datastreamer.FileEntry) {
 			os.Exit(1)
 		}
 
-		printColored(color.FgGreen, "Sender..........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", sender))
+		simpleEntry["Sender"] = fmt.Sprintf("%s", sender)
 		nonce := tx.Nonce()
-		printColored(color.FgGreen, "Nonce...........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", nonce))
+
+		simpleEntry["Nonce "] = fmt.Sprintf("%d", nonce)
 
 		if dsTx.Debug != nil && dsTx.Debug.Message != "" {
-			printColored(color.FgGreen, "Debug...........: ")
-			printColored(color.FgHiWhite, fmt.Sprintf("%s\n", dsTx.Debug))
+			simpleEntry["Debug"] = fmt.Sprintf("%s", dsTx.Debug)
 		}
 
 	case datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_UPDATE_GER):
@@ -1093,33 +1071,66 @@ func printEntry(entry datastreamer.FileEntry) {
 			os.Exit(1)
 		}
 
-		printColored(color.FgGreen, "Entry Type......: ")
-		printColored(color.FgHiYellow, "Update GER\n")
-		printColored(color.FgGreen, "Entry Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", entry.Number))
-		printColored(color.FgGreen, "Batch Number....: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", updateGer.BatchNumber))
-		printColored(color.FgGreen, "Timestamp.......: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%v (%d)\n", time.Unix(int64(updateGer.Timestamp), 0), updateGer.Timestamp))
-		printColored(color.FgGreen, "Global Exit Root: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", common.Bytes2Hex(updateGer.GlobalExitRoot)))
-		printColored(color.FgGreen, "Coinbase........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%s\n", common.BytesToAddress(updateGer.Coinbase)))
-		printColored(color.FgGreen, "Fork ID.........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", updateGer.ForkId))
-		printColored(color.FgGreen, "Chain ID........: ")
-		printColored(color.FgHiWhite, fmt.Sprintf("%d\n", updateGer.ChainId))
-		printColored(color.FgGreen, "State Root......: ")
-		printColored(color.FgHiWhite, fmt.Sprint(common.Bytes2Hex(updateGer.StateRoot)+"\n"))
+		simpleEntry["Entry Type"] = "Update GER"
+		simpleEntry["Entry Number"] = fmt.Sprintf("%d", entry.Number)
+		simpleEntry["Batch Number"] = fmt.Sprintf("%d", updateGer.BatchNumber)
+		simpleEntry["Timestamp"] = fmt.Sprintf("%v (%d)", time.Unix(int64(updateGer.Timestamp), 0), updateGer.Timestamp)
+		simpleEntry["Global Exit Root"] = fmt.Sprintf("%s", common.Bytes2Hex(updateGer.GlobalExitRoot))
+		simpleEntry["Coinbase"] = fmt.Sprintf("%s", common.BytesToAddress(updateGer.Coinbase))
+		simpleEntry["Fork ID"] = fmt.Sprintf("%d", updateGer.ForkId)
+		simpleEntry["Chain ID"] = fmt.Sprintf("%d", updateGer.ChainId)
+		simpleEntry["State Root"] = fmt.Sprint(common.Bytes2Hex(updateGer.StateRoot))
 
 		if updateGer.Debug != nil && updateGer.Debug.Message != "" {
-			printColored(color.FgGreen, "Debug...........: ")
-			printColored(color.FgHiWhite, fmt.Sprintf("%s\n", updateGer.Debug))
+			simpleEntry["Debug"] = fmt.Sprintf("%s", updateGer.Debug)
 		}
+	}
+
+	// why bother
+	if len(simpleEntry) == 0 {
+		return
+	}
+	if shouldPrintJson {
+		printJSON(simpleEntry)
+	} else {
+		printColorful(simpleEntry)
 	}
 }
 
 func printColored(color color.Attribute, text string) {
 	colored := fmt.Sprintf("\x1b[%dm%s\x1b[0m", color, text)
 	fmt.Print(colored)
+}
+func printJSON(item any) {
+	jsonBytes, err := json.Marshal(item)
+	if err != nil {
+		log.Error(err)
+		os.Exit(1)
+	}
+	fmt.Println(string(jsonBytes))
+}
+
+const ColorfulFieldWidth = 25
+
+func printColorful(entry map[string]any) {
+	entryType, hasKey := entry["Entry Type"]
+	if hasKey {
+		pad := strings.Repeat(".", ColorfulFieldWidth-len("Entry Type"))
+		fmt.Printf("\x1b[%dm%s\x1b[0m%s: \x1b[%dm%s\x1b[0m\n", color.FgGreen, "Entry Type", pad, color.FgYellow, entryType)
+	}
+
+	keys := getSortedEntryKeys(entry)
+	for _, k := range keys {
+		v := entry[k]
+		pad := strings.Repeat(".", ColorfulFieldWidth-len(k))
+		fmt.Printf("\x1b[%dm%s\x1b[0m%s: \x1b[%dm%s\x1b[0m\n", color.FgGreen, k, pad, color.FgWhite, v)
+	}
+}
+func getSortedEntryKeys(entry map[string]any) []string {
+	keys := make([]string, 0)
+	for k := range entry {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }
