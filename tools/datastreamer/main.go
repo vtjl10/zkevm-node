@@ -1116,14 +1116,14 @@ const ColorfulFieldWidth = 25
 func printColorful(entry map[string]any) {
 	entryType, hasKey := entry["Entry Type"]
 	if hasKey {
-		pad := strings.Repeat(".", ColorfulFieldWidth-len("Entry Type"))
+		pad := strings.Repeat("·", ColorfulFieldWidth-len("Entry Type"))
 		fmt.Printf("\x1b[%dm%s\x1b[0m%s: \x1b[%dm%s\x1b[0m\n", color.FgGreen, "Entry Type", pad, color.FgYellow, entryType)
 	}
 
 	keys := getSortedEntryKeys(entry)
 	for _, k := range keys {
 		v := entry[k]
-		pad := strings.Repeat(".", ColorfulFieldWidth-len(k))
+		pad := strings.Repeat("·", ColorfulFieldWidth-len(k))
 		fmt.Printf("\x1b[%dm%s\x1b[0m%s: \x1b[%dm%s\x1b[0m\n", color.FgGreen, k, pad, color.FgWhite, v)
 	}
 }

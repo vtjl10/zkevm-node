@@ -93,59 +93,73 @@ Almost all the decode options can work online, connecting to a node serving the 
 Note: `Version` and `ChainID` fields from the Offline section of the config file are used during generation, so make sure they both are correct. Current Value for Version should be `3`.
 
 
-### Get contents of Batch 1 from the local files
+### Get contents of Batch 201 from the local files
 
-`make decode-batch-offline 1`
+`make decode-batch-offline 201`
 
 ```
-Entry Type......: Batch Start
-Entry Number....: 6
-Batch Number....: 1
-Batch Type......: BATCH_TYPE_INJECTED
-Fork ID.........: 9
-Chain ID........: 6969
-Entry Type......: BookMark
-Entry Number....: 7
-Type............: 2 (BOOKMARK_TYPE_L2_BLOCK)
-Value...........: 1
-Entry Type......: L2 Block
-Entry Number....: 8
-L2 Block Number.: 1
-Batch Number....: 1
-Timestamp.......: 1714380108 (2024-04-29 08:41:48 +0000 UTC)
-Delta Timestamp.: 1714380108
-Min. Timestamp..: 0
-L1 Block Hash...: 0xdeaef97f8a5c6f056d08e162073d720c035a25adcaa2cd868124543ea54fb185
-L1 InfoTree Idx.: 0
-Block Hash......: 0xeeb2b1e810770dc1dcdd71a7ffa2a81ae77642d1e3c389919464100b3f70e366
-State Root......: 0xada6af5a8bf491712d5ba14c67283a7b516245cd571151c5ade13f82532a398d
-Global Exit Root: 0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5
-Coinbase........: 0x5BD65BF6e084ECC10565EED59b838E82aBc28083
-Block Gas Limit.: 0
-Block Info Root.: 0x5dfdd92c4436374df99c4532ca7b8b1732faa10e9a6e31e0868bd4bfb6e8303d
-Entry Type......: L2 Transaction
-Entry Number....: 9
-L2 Block Number.: 1
-Index...........: 0
-Is Valid........: true
-Data............: 0xf9010f80808401c9c38094ca127484cda2b723c4c03558b94749184d3cfa9880b8e4f811bff7000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a40d5f56745a118d0906a34e69aec8c0db1cb8fa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000001b8505ca1ab1e0845ca1ab1e
-Effec. Gas Price: 255
-IM State Root...: 0xeb6b784c61931c8d188ce19298799000615de174e17850ae53feb496b4a5a6ca
-Sender..........: 0x2CfbeDbE634712c0Cec2Cd929DcB8c23B0038F2A
-Nonce...........: 0
-Entry Type......: Batch End
-Entry Number....: 10
-Batch Number....: 1
-State Root......: 0xada6af5a8bf491712d5ba14c67283a7b516245cd571151c5ade13f82532a398d
-Local Exit Root.: 0x0000000000000000000000000000000000000000000000000000000000000000
+Entry Type···············: Batch Start
+Batch Number·············: 201
+Batch Type···············: BATCH_TYPE_REGULAR
+Chain ID ················: 2440
+Entry Number·············: 17575
+Entry Type···············: Batch Start
+Fork ID··················: 7
+Entry Type···············: BookMark
+Entry Number·············: 17576
+Entry Type···············: BookMark
+Type·····················: 2 (BOOKMARK_TYPE_L2_BLOCK)
+Value····················: 4259
+Entry Type···············: L2 Block
+Batch Number·············: 201
+Block Gas Limit··········: 0
+Block Hash···············: 0xbd2fde31c1ba2bb17f6b1edec5e7d3576ae645b4b8095b74152ad28ba4a8bab4
+Block Info Root··········: 0x4e63bbbe4d34e6b3d8d531a2da5cffb4e3877414ecfe4dde24d2afaf3fd0d7a0
+Coinbase·················: 0x9aeCf44E36f20DC407d1A580630c9a2419912dcB
+Delta Timestamp··········: 3
+Entry Number·············: 17577
+Entry Type···············: L2 Block
+Global Exit Root·········: 0x0000000000000000000000000000000000000000000000000000000000000000
+L1 Block Hash············: 0x0000000000000000000000000000000000000000000000000000000000000000
+L1 InfoTree Idx··········: 0
+L2 Block Number··········: 4259
+Min. Timestamp···········: 0
+State Root···············: 0x0b649d223f59634d612b0b101ada69310f2f1485e7f38d8a392642229a57863b
+Timestamp················: 1706276938 (2024-01-26 08:48:58 -0500 EST)
+Entry Type···············: BookMark
+Entry Number·············: 17579
+Entry Type···············: BookMark
+Type·····················: 2 (BOOKMARK_TYPE_L2_BLOCK)
+Value····················: 4260
+Entry Type···············: BookMark
+Entry Number·············: 17582
+Entry Type···············: BookMark
+Type·····················: 2 (BOOKMARK_TYPE_L2_BLOCK)
+Value····················: 4261
+Entry Type···············: BookMark
+Entry Number·············: 17586
+Entry Type···············: BookMark
+Type·····················: 1 (BOOKMARK_TYPE_BATCH)
+Value····················: 202
+Entry Type···············: BookMark
+Entry Number·············: 17591
+Entry Type···············: BookMark
+Type·····················: 2 (BOOKMARK_TYPE_L2_BLOCK)
+Value····················: 4263
+Entry Type···············: Batch End
+Batch Number·············: 202
+Entry Number·············: 17597
+Entry Type···············: Batch End
+Local Exit Root··········: 0x4c907345c62b48529ce718f3a32e8be63a3ae02831386a638419c6cbe6606558
+State Root···············: 0x7d2fbae3341b01aa6acb39e113fb98797f3e3da0cddb80b333ae5f8dcb916c7b
 ```
 
 ### Get BatchL2Data from Batch 2 in the Data Stream
 
-`make decode-batchl2data 1`
+`make decode-batchl2data 201`
 
 ```
-BatchL2Data.....: 0x0b662f5d4c00000000f9010380808401c9c38094ca127484cda2b723c4c03558b94749184d3cfa9880b8e4f811bff7000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a40d5f56745a118d0906a34e69aec8c0db1cb8fa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005ca1ab1e0000000000000000000000000000000000000000000000000000000005ca1ab1e1bff
+BatchL2Data.....: 0x0b00000003000000000b00000003000000000b0000000300000000
 ```
 
 ### Get content of L2Block 1 from an online Data Stream
@@ -153,29 +167,35 @@ BatchL2Data.....: 0x0b662f5d4c00000000f9010380808401c9c38094ca127484cda2b723c4c0
 `make decode-l2block 1`
 
 ```
-Entry Type......: L2 Block
-Entry Number....: 8
-L2 Block Number.: 1
-Batch Number....: 1
-Timestamp.......: 1714380108 (2024-04-29 08:41:48 +0000 UTC)
-Delta Timestamp.: 1714380108
-Min. Timestamp..: 0
-L1 Block Hash...: 0xdeaef97f8a5c6f056d08e162073d720c035a25adcaa2cd868124543ea54fb185
-L1 InfoTree Idx.: 0
-Block Hash......: 0xeeb2b1e810770dc1dcdd71a7ffa2a81ae77642d1e3c389919464100b3f70e366
-State Root......: 0xada6af5a8bf491712d5ba14c67283a7b516245cd571151c5ade13f82532a398d
-Global Exit Root: 0xad3228b676f7d3cd4284a5443f17f1962b36e491b30a40b2405849e597ba5fb5
-Coinbase........: 0x5BD65BF6e084ECC10565EED59b838E82aBc28083
-Block Gas Limit.: 0
-Block Info Root.: 0x5dfdd92c4436374df99c4532ca7b8b1732faa10e9a6e31e0868bd4bfb6e8303d
-Entry Type......: L2 Transaction
-Entry Number....: 9
-L2 Block Number.: 1
-Index...........: 0
-Is Valid........: true
-Data............: 0xf9010f80808401c9c38094ca127484cda2b723c4c03558b94749184d3cfa9880b8e4f811bff7000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a40d5f56745a118d0906a34e69aec8c0db1cb8fa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000000001b8505ca1ab1e0845ca1ab1e
-Effec. Gas Price: 255
-IM State Root...: 0x0000000000000000000000000000000000000000000000000000000000000000
-Sender..........: 0x2CfbeDbE634712c0Cec2Cd929DcB8c23B0038F2A
-Nonce...........: 0
+Entry Type···············: L2 Block
+Batch Number·············: 1
+Block Gas Limit··········: 0
+Block Hash···············: 0x2d19690496337b8f0048d589c4d82820cd46a63f993cca5fc25cd738cce29dad
+Block Info Root··········: 0x0000000000000000000000000000000000000000000000000000000000000000
+Coinbase·················: 0x9aeCf44E36f20DC407d1A580630c9a2419912dcB
+Delta Timestamp··········: 1701345162
+Entry Number·············: 9
+Entry Type···············: L2 Block
+Global Exit Root·········: 0x0000000000000000000000000000000000000000000000000000000000000000
+L1 Block Hash············: 0x0000000000000000000000000000000000000000000000000000000000000000
+L1 InfoTree Idx··········: 0
+L2 Block Number··········: 1
+Min. Timestamp···········: 0
+State Root···············: 0x9333321a6e1253c5c12922b2c1fcb4f9b6fac830d80951f4f08a640cd61dfcc4
+Timestamp················: 1701345162 (2023-11-30 06:52:42 -0500 EST)
+Entry Type···············: L2 Transaction
+Data·····················: 0xf86a0884025625008252089488cd377500be9906c46073f54901878d1aedc72f870286db33b3c300801ca0e8941bb474e66cc662ce2cf7f52a8b45596e4bebeafd698dc6b10002ff9e04aca048b0b802b0f442fed738ba74d4d53823b3aa60bd9306002486950208b5d8cd7e
+Effec. Gas Price·········: 0
+Entry Number·············: 10
+Entry Type···············: L2 Transaction
+IM State Root ···········: 0xae431fe8723d233e04045201057e257d046ebf6d4ba93baf0d1203209b4de9ea
+Index····················: 0
+Is Valid·················: true
+L2 Block Number··········: 1
+Nonce ···················: 8
+Sender···················: 0x229A5bDBb09d8555f9214F7a6784804999BA4E0D
+Entry Type···············: L2 Block End
+Entry Number·············: 11
+Entry Type···············: L2 Block End
+L2 Block Number··········: 1
 ```
