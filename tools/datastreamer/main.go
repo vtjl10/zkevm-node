@@ -975,7 +975,7 @@ func printEntry(entry datastreamer.FileEntry, shouldPrintJson bool) {
 		simpleEntry["Block Info Root"] = fmt.Sprintf("%s", common.BytesToHash(l2Block.BlockInfoRoot))
 
 		if l2Block.Debug != nil && l2Block.Debug.Message != "" {
-			simpleEntry["Debug"] = fmt.Sprintf("%s", l2Block.Debug)
+			simpleEntry["Debug"] = l2Block.Debug
 		}
 
 	case datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_L2_BLOCK_END):
@@ -1000,12 +1000,12 @@ func printEntry(entry datastreamer.FileEntry, shouldPrintJson bool) {
 		simpleEntry["Entry Type"] = "Batch Start"
 		simpleEntry["Entry Number"] = fmt.Sprintf("%d", entry.Number)
 		simpleEntry["Batch Number"] = fmt.Sprintf("%d", batch.Number)
-		simpleEntry["Batch Type"] = fmt.Sprintf("%s", datastream.BatchType_name[int32(batch.Type)])
+		simpleEntry["Batch Type"] = datastream.BatchType_name[int32(batch.Type)]
 		simpleEntry["Fork ID"] = fmt.Sprintf("%d", batch.ForkId)
 		simpleEntry["Chain ID "] = fmt.Sprintf("%d", batch.ChainId)
 
 		if batch.Debug != nil && batch.Debug.Message != "" {
-			simpleEntry["Debug "] = fmt.Sprintf("%s", batch.Debug)
+			simpleEntry["Debug "] = batch.Debug
 		}
 
 	case datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_BATCH_END):
@@ -1018,11 +1018,11 @@ func printEntry(entry datastreamer.FileEntry, shouldPrintJson bool) {
 		simpleEntry["Entry Type"] = "Batch End"
 		simpleEntry["Entry Number"] = fmt.Sprintf("%d", entry.Number)
 		simpleEntry["Batch Number"] = fmt.Sprintf("%d", batch.Number)
-		simpleEntry["State Root"] = fmt.Sprintf("%s", "0x"+common.Bytes2Hex(batch.StateRoot))
-		simpleEntry["Local Exit Root"] = fmt.Sprintf("%s", "0x"+common.Bytes2Hex(batch.LocalExitRoot))
+		simpleEntry["State Root"] = "0x" + common.Bytes2Hex(batch.StateRoot)
+		simpleEntry["Local Exit Root"] = "0x" + common.Bytes2Hex(batch.LocalExitRoot)
 
 		if batch.Debug != nil && batch.Debug.Message != "" {
-			simpleEntry["Debug "] = fmt.Sprintf("%s", batch.Debug)
+			simpleEntry["Debug "] = batch.Debug
 		}
 
 	case datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_TRANSACTION):
