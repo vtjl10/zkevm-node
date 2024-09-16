@@ -1038,7 +1038,7 @@ func printEntry(entry datastreamer.FileEntry, shouldPrintJson bool) {
 		simpleEntry["L2 Block Number"] = fmt.Sprintf("%d", dsTx.L2BlockNumber)
 		simpleEntry["Index"] = fmt.Sprintf("%d", dsTx.Index)
 		simpleEntry["Is Valid"] = fmt.Sprintf("%t", dsTx.IsValid)
-		simpleEntry["Data"] = fmt.Sprintf("%s", "0x"+common.Bytes2Hex(dsTx.Encoded))
+		simpleEntry["Data"] = "0x" + common.Bytes2Hex(dsTx.Encoded)
 		simpleEntry["Effec. Gas Price"] = fmt.Sprintf("%d", dsTx.EffectiveGasPricePercentage)
 		simpleEntry["IM State Root "] = fmt.Sprint("0x" + common.Bytes2Hex(dsTx.ImStateRoot))
 
@@ -1054,13 +1054,13 @@ func printEntry(entry datastreamer.FileEntry, shouldPrintJson bool) {
 			os.Exit(1)
 		}
 
-		simpleEntry["Sender"] = fmt.Sprintf("%s", sender)
+		simpleEntry["Sender"] = sender
 		nonce := tx.Nonce()
 
 		simpleEntry["Nonce "] = fmt.Sprintf("%d", nonce)
 
 		if dsTx.Debug != nil && dsTx.Debug.Message != "" {
-			simpleEntry["Debug"] = fmt.Sprintf("%s", dsTx.Debug)
+			simpleEntry["Debug"] = dsTx.Debug
 		}
 
 	case datastreamer.EntryType(datastream.EntryType_ENTRY_TYPE_UPDATE_GER):
@@ -1075,14 +1075,14 @@ func printEntry(entry datastreamer.FileEntry, shouldPrintJson bool) {
 		simpleEntry["Entry Number"] = fmt.Sprintf("%d", entry.Number)
 		simpleEntry["Batch Number"] = fmt.Sprintf("%d", updateGer.BatchNumber)
 		simpleEntry["Timestamp"] = fmt.Sprintf("%v (%d)", time.Unix(int64(updateGer.Timestamp), 0), updateGer.Timestamp)
-		simpleEntry["Global Exit Root"] = fmt.Sprintf("%s", common.Bytes2Hex(updateGer.GlobalExitRoot))
-		simpleEntry["Coinbase"] = fmt.Sprintf("%s", common.BytesToAddress(updateGer.Coinbase))
+		simpleEntry["Global Exit Root"] = common.Bytes2Hex(updateGer.GlobalExitRoot)
+		simpleEntry["Coinbase"] = common.BytesToAddress(updateGer.Coinbase)
 		simpleEntry["Fork ID"] = fmt.Sprintf("%d", updateGer.ForkId)
 		simpleEntry["Chain ID"] = fmt.Sprintf("%d", updateGer.ChainId)
 		simpleEntry["State Root"] = fmt.Sprint(common.Bytes2Hex(updateGer.StateRoot))
 
 		if updateGer.Debug != nil && updateGer.Debug.Message != "" {
-			simpleEntry["Debug"] = fmt.Sprintf("%s", updateGer.Debug)
+			simpleEntry["Debug"] = updateGer.Debug
 		}
 	}
 
