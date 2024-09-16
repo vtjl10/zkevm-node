@@ -935,7 +935,7 @@ func (h *handler) handleReceivedDataStream(entry *datastreamer.FileEntry, client
 }
 
 func printEntry(entry datastreamer.FileEntry, shouldPrintJson bool) {
-	simpleEntry := make(map[string]any, 0)
+	simpleEntry := make(map[string]any)
 
 	switch entry.Type {
 	case state.EntryTypeBookMark:
@@ -1110,6 +1110,7 @@ func printJSON(item any) {
 	fmt.Println(string(jsonBytes))
 }
 
+// ColorfulFieldWidth specifies the padded width of the field name of the colorful output
 const ColorfulFieldWidth = 25
 
 func printColorful(entry map[string]any) {
