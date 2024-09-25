@@ -199,3 +199,18 @@ Entry Number·············: 11
 Entry Type···············: L2 Block End
 L2 Block Number··········: 1
 ```
+
+### Get contents of Batch 201 from the local files as a JSON stream
+
+By default, the make file targets output content in a convenient, human-readable format. The same data can be retrieved as a [newline delimited JSON](https://github.com/ndjson/ndjson-spec) stream by adding the `--json` flag.
+
+`go run main.go decode-batch --cfg config/tool.config.toml --batch 201 --json`
+
+
+```
+{"Batch Number":"201","Batch Type":"BATCH_TYPE_REGULAR","Chain ID ":"10101","Entry Number":"62682","Entry Type":"Batch Start","Fork ID":"12"}
+{"Entry Number":"62683","Entry Type":"BookMark","Type":"2 (BOOKMARK_TYPE_L2_BLOCK)","Value":"426"}
+{"Batch Number":"201","Block Gas Limit":"0","Block Hash":"0xbc518d2e5a43f165bb0a9946fe5255a6810e638fd709dcd7065db31e6e5111cd","Block Info Root":"0x229bc3f5ea59c0628cf75a80517e0dcdb2e817177cacdf7ffa27ad05ee37d1f9","Coinbase":"0x5b06837A43bdC3dD9F114558DAf4B26ed49842Ed","Delta Timestamp":"2","Entry Number":"62684","Entry Type":"L2 Block","Global Exit Root":"0x0000000000000000000000000000000000000000000000000000000000000000","L1 Block Hash":"0x0000000000000000000000000000000000000000000000000000000000000000","L1 InfoTree Idx":"0","L2 Block Number":"426","Min. Timestamp":"0","State Root":"0x0d43082ea60965b1bf7bccb0001babf0b486390e4bf13cadb6282aae219ea8f5","Timestamp":"1727205926 (2024-09-24 15:25:26 -0400 EDT)"}
+{"Data":"0xf86e82ed86843b9aca0082520894deadbeefdeadbeefdeadbeefdeadbeefdeadbeef87038d7ea4c6800080824f0da09fad01f022fa8675a5eb04a9e062eae1efed7c1e0ccac394bd821cc925b2707ba02494a393b3c6720f1c2da44a92296738724cbdbc0c0449e6b2e1e977626dc761","Effec. Gas Price":"255","Entry Number":"62685","Entry Type":"L2 Transaction","IM State Root ":"0x0000000000000000000000000000000000000000000000000000000000000000","Index":"0","Is Valid":"true","L2 Block Number":"426","Nonce ":"60806","Sender":"0xe34aaf64b29273b7d567fcfc40544c014eee9970"}
+{"Data":"0xf86e82ed87843b9aca0082520894deadbeefdeadbeefdeadbeefdeadbeefdeadbeef87038d7ea4c6800080824f0da0b39f4f13d0b68095d45bbae09608d264ba09056d905d95d2fa73a5158fa1c0ffa056c06604a5d400784addd5e044f3f4be4aadbeb3d919b77e11c6867c1d53a289","Effec. Gas Price":"255","Entry Number":"62686","Entry Type":"L2 Transaction","IM State Root ":"0x0000000000000000000000000000000000000000000000000000000000000000","Index":"0","Is Valid":"true","L2 Block Number":"426","Nonce ":"60807","Sender":"0xe34aaf64b29273b7d567fcfc40544c014eee9970"}
+```
